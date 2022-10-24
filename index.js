@@ -1,64 +1,52 @@
-const github = require('@actions/github')
-const core = require('@actions/core')
-const _ = require('lodash')
-const cc = require('@conventional-commits/parser')
-const fs = require('fs').promises
+import github from '@actions/github'
+import core from '@actions/core'
+import _ from 'lodash'
+// import cc from '@conventional-commits/parser'
 
-const types = [
-  { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
-  { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:' },
-  { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
-  { types: ['refactor'], header: 'Refactors', icon: ':recycle:' },
-  { types: ['test', 'tests'], header: 'Tests', icon: ':white_check_mark:' },
-  { types: ['build', 'ci'], header: 'Build System', icon: ':construction_worker:' },
-  { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
-  { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
-  { types: ['chore'], header: 'Chores', icon: ':wrench:' },
-  { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
-]
+// const types = [
+//   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
+//   { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:' },
+//   { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
+//   { types: ['refactor'], header: 'Refactors', icon: ':recycle:' },
+//   { types: ['test', 'tests'], header: 'Tests', icon: ':white_check_mark:' },
+//   { types: ['build', 'ci'], header: 'Build System', icon: ':construction_worker:' },
+//   { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
+//   { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
+//   { types: ['chore'], header: 'Chores', icon: ':wrench:' },
+//   { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
+// ]
 
-const rePrId = /#([0-9]+)/g
-const rePrEnding = /\(#([0-9]+)\)$/
+// const rePrId = /#([0-9]+)/g
+// const rePrEnding = /\(#([0-9]+)\)$/
 
-function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo }) {
-  const hasPR = rePrEnding.test(subject)
-  let final = subject
-  if (writeToFile) {
-    if (hasPR) {
-      const prMatch = subject.match(rePrEnding)
-      const msgOnly = subject.slice(0, prMatch[0].length * -1)
-      final = msgOnly.replace(rePrId, (m, prId) => {
-        return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
-      })
-      final += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
-    } else {
-      final = subject.replace(rePrId, (m, prId) => {
-        return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
-      })
-      final += ` *(commit by [@${author}](${authorUrl}))*`
-    }
-  } else {
-    if (hasPR) {
-      final = subject.replace(rePrEnding, (m, prId) => {
-        return `*(PR #${prId} by @${author})*`
-      })
-    } else {
-      final = `${subject} *(commit by @${author})*`
-    }
-  }
-  return final
-}
+// const buildSubject = ({ subject, author, authorUrl, owner, repo }) => {
+//   const hasPR = rePrEnding.test(subject)
+//   let final = subject
+//
+//   if (hasPR) {
+//     const prMatch = subject.match(rePrEnding)
+//     const msgOnly = subject.slice(0, prMatch[0].length * -1)
+//     final = msgOnly.replace(rePrId, (m, prId) => {
+//       return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
+//     })
+//     final += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
+//   } else {
+//     final = subject.replace(rePrId, (m, prId) => {
+//       return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
+//     })
+//     final += ` *(commit by [@${author}](${authorUrl}))*`
+//   }
+//
+//   return final
+// }
 
-async function main () {
+const main = async () => {
+  core.setOutput('failed', false) // mark the action not failed by default
   const token = core.getInput('token')
   const tag = core.getInput('tag')
-  const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
-  const writeToFile = core.getBooleanInput('writeToFile')
-  const useGitmojis = core.getBooleanInput('useGitmojis')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
-  const currentISODate = (new Date()).toISOString().substring(0, 10)
 
   // GET LATEST + PREVIOUS TAGS
 
@@ -128,30 +116,30 @@ async function main () {
   // PARSE COMMITS
 
   const commitsParsed = []
-  const breakingChanges = []
+
   for (const commit of commits) {
     try {
-      const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
+      // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
       commitsParsed.push({
-        ...cAst,
+        message: commit.commit.message,
         sha: commit.sha,
         url: commit.html_url,
         author: commit.author.login,
         authorUrl: commit.author.html_url
       })
-      for (const note of cAst.notes) {
-        if (note.title === 'BREAKING CHANGE') {
-          breakingChanges.push({
-            sha: commit.sha,
-            url: commit.html_url,
-            subject: cAst.subject,
-            author: commit.author.login,
-            authorUrl: commit.author.html_url,
-            text: note.text
-          })
-        }
-      }
-      core.info(`[OK] Commit ${commit.sha} of type ${cAst.type} - ${cAst.subject}`)
+      // for (const note of cAst.notes) {
+      //   if (note.title === 'BREAKING CHANGE') {
+      //     breakingChanges.push({
+      //       sha: commit.sha,
+      //       url: commit.html_url,
+      //       subject: cAst.subject,
+      //       author: commit.author.login,
+      //       authorUrl: commit.author.html_url,
+      //       text: note.text
+      //     })
+      //   }
+      // }
+      core.info(`[OK] Commit ${commit.sha}`)
     } catch (err) {
       core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
     }
@@ -163,102 +151,53 @@ async function main () {
 
   // BUILD CHANGELOG
 
-  const changes = []
+  // const changes = []
 
-  let idx = 0
-  for (const type of types) {
-    if (_.intersection(type.types, excludeTypes).length > 0) {
-      continue
-    }
-    const matchingCommits = commitsParsed.filter(c => type.types.includes(c.type))
-    if (matchingCommits.length < 1) {
-      continue
-    }
-    if (idx > 0) {
-      changes.push('')
-    }
-    changes.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
-    for (const commit of matchingCommits) {
-      const scope = commit.scope ? `**${commit.scope}**: ` : ''
-      const subject = buildSubject({
-        writeToFile,
-        subject: commit.subject,
-        author: commit.author,
-        authorUrl: commit.authorUrl,
-        owner,
-        repo
-      })
-      changes.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subject}`)
-    }
-    idx++
-  }
+  // let idx = 0
+  // for (const type of types) {
+  //   const matchingCommits = commitsParsed.filter(c => type.types.includes(c.type))
+  //   if (matchingCommits.length < 1) {
+  //     continue
+  //   }
+  //   if (idx > 0) {
+  //     changes.push('')
+  //   }
+  //   changes.push(`### ${type.icon} ${type.header}`)
+  //   for (const commit of matchingCommits) {
+  //     const scope = commit.scope ? `**${commit.scope}**: ` : ''
+  //     const subject = buildSubject({
+  //       subject: commit.subject,
+  //       author: commit.author,
+  //       authorUrl: commit.authorUrl,
+  //       owner,
+  //       repo
+  //     })
+  //     changes.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subject}`)
+  //   }
+  //   idx++
+  // }
+  //
+  // if (breakingChanges.length > 0) {
+  //   changes.push('')
+  //   changes.push('### :boom: BREAKING CHANGES')
+  //   for (const breakChange of breakingChanges) {
+  //     const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
+  //     const subject = buildSubject({
+  //       subject: breakChange.subject,
+  //       author: breakChange.author,
+  //       authorUrl: breakChange.authorUrl,
+  //       owner,
+  //       repo
+  //     })
+  //     changes.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
+  //   }
+  // } else if (changes.length > 0) {
+  //   changes.push('')
+  // } else {
+  //   return core.warning('Nothing to add to changelog because of excluded types.')
+  // }
 
-  if (breakingChanges.length > 0) {
-    changes.push('')
-    changes.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
-    for (const breakChange of breakingChanges) {
-      const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
-      const subject = buildSubject({
-        writeToFile,
-        subject: breakChange.subject,
-        author: breakChange.author,
-        authorUrl: breakChange.authorUrl,
-        owner,
-        repo
-      })
-      changes.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
-    }
-  } else if (changes.length > 0) {
-    changes.push('')
-  } else {
-    return core.warning('Nothing to add to changelog because of excluded types.')
-  }
-
-  core.setOutput('changes', changes.join('\n'))
-
-  if (!writeToFile) { return }
-
-  // PARSE EXISTING CHANGELOG
-
-  let chglog = ''
-  try {
-    chglog = await fs.readFile('CHANGELOG.md', 'utf8')
-  } catch (err) {
-    core.info('Couldn\'t find a CHANGELOG.md, creating a new one...')
-    chglog = `# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-`
-  }
-
-  // UPDATE CHANGELOG CONTENTS
-
-  const lines = chglog.replace(/\r/g, '').split('\n')
-  let firstVersionLine = _.findIndex(lines, l => l.startsWith('## '))
-
-  if (firstVersionLine >= 0 && lines[firstVersionLine].startsWith(`## [${tag}`)) {
-    return core.notice('This version already exists in the CHANGELOG! No change will be made to the CHANGELOG.')
-  }
-
-  if (firstVersionLine < 0) {
-    firstVersionLine = lines.length
-  }
-
-  let output = ''
-  if (firstVersionLine > 0) {
-    output += lines.slice(0, firstVersionLine).join('\n') + '\n'
-  }
-  output += `## [${tag}] - ${currentISODate}\n${changes.join('\n')}\n`
-  if (firstVersionLine < lines.length) {
-    output += '\n' + lines.slice(firstVersionLine).join('\n')
-  }
-  output += `\n[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
-
-  // WRITE CHANGELOG TO FILE
-
-  await fs.writeFile('CHANGELOG.md', output)
+  core.setOutput('changes', commitsParsed.join('\n'))
 }
 
-main()
+main().catch(console.error)
