@@ -1,6 +1,6 @@
-import github from '@actions/github'
-import core from '@actions/core'
-import _ from 'lodash'
+const github = require('@actions/github')
+const core = require('@actions/core')
+const _ = require('lodash')
 // import cc from '@conventional-commits/parser'
 
 // const types = [
