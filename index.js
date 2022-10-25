@@ -198,7 +198,7 @@ const main = async () => {
   //   return core.warning('Nothing to add to changelog because of excluded types.')
   // }
 
-  console.log(util.inspect(commitsParsed.join('\n'), { showHidden: false, depth: null, colors: true }))
+  console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
   core.info(commitsParsed.join('\n'))
   core.setOutput('changes', commitsParsed.join('\n'))
 }
