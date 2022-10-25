@@ -27293,6 +27293,8 @@ const main = async () => {
   //   return core.warning('Nothing to add to changelog because of excluded types.')
   // }
 
+  console.log(commitsParsed.join('\n'))
+  core.info(commitsParsed.join('\n'))
   core.setOutput('changes', commitsParsed.join('\n'))
 }
 
