@@ -2,26 +2,24 @@
   "name": "changelog-action",
   "version": "1.0.0",
   "description": "GitHub Action to generate changelog from conventional commits",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "lint": "eslint .",
     "build": "ncc build index.js -o dist"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Requarks/changelog-action.git"
+    "url": "git+https://github.com/Enase/changelog-action.git"
   },
   "keywords": [
     "changelog",
-    "github-actions",
-    "conventional-commits"
+    "github-actions"
   ],
-  "author": "Nicolas Giard <github@ngpixel.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Requarks/changelog-action/issues"
+    "url": "https://github.com/Enase/changelog-action/issues"
   },
-  "homepage": "https://github.com/Requarks/changelog-action#readme",
+  "homepage": "https://github.com/Enase/changelog-action#readme",
   "dependencies": {
     "@actions/core": "1.10.0",
     "@actions/github": "5.1.1",
