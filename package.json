@@ -2,7 +2,7 @@
   "name": "changelog-action",
   "version": "1.0.0",
   "description": "GitHub Action to generate changelog from conventional commits",
-  "main": "dist/index.js",
+  "main": "index.js",
   "scripts": {
     "lint": "eslint .",
     "build": "ncc build index.js -o dist"
