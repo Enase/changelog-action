@@ -1,6 +1,7 @@
 const github = require('@actions/github')
 const core = require('@actions/core')
 const _ = require('lodash')
+const util = require('util')
 // import cc from '@conventional-commits/parser'
 
 // const types = [
@@ -197,7 +198,7 @@ const main = async () => {
   //   return core.warning('Nothing to add to changelog because of excluded types.')
   // }
 
-  console.log(commitsParsed.join('\n'))
+  console.log(util.inspect(commitsParsed.join('\n'), { showHidden: false, depth: null, colors: true }))
   core.info(commitsParsed.join('\n'))
   core.setOutput('changes', commitsParsed.join('\n'))
 }

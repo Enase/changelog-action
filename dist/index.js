@@ -27097,6 +27097,7 @@ var __webpack_exports__ = {};
 const github = __nccwpck_require__(5438)
 const core = __nccwpck_require__(2186)
 const _ = __nccwpck_require__(250)
+const util = __nccwpck_require__(3837)
 // import cc from '@conventional-commits/parser'
 
 // const types = [
@@ -27293,7 +27294,7 @@ const main = async () => {
   //   return core.warning('Nothing to add to changelog because of excluded types.')
   // }
 
-  console.log(commitsParsed.join('\n'))
+  console.log(util.inspect(commitsParsed.join('\n'), { showHidden: false, depth: null, colors: true }))
   core.info(commitsParsed.join('\n'))
   core.setOutput('changes', commitsParsed.join('\n'))
 }
