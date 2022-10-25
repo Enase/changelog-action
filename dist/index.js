@@ -27077,46 +27077,6 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/node module decorator */
 /******/ 	(() => {
 /******/ 		__nccwpck_require__.nmd = (module) => {
@@ -27132,19 +27092,11 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(5438);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(250);
-/* harmony import */ var lodash__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nccwpck_require__.n(lodash__WEBPACK_IMPORTED_MODULE_2__);
-
-
-
+const github = __nccwpck_require__(5438)
+const core = __nccwpck_require__(2186)
+const _ = __nccwpck_require__(250)
 // import cc from '@conventional-commits/parser'
 
 // const types = [
@@ -27185,12 +27137,12 @@ __nccwpck_require__.r(__webpack_exports__);
 // }
 
 const main = async () => {
-  _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setOutput('failed', false) // mark the action not failed by default
-  const token = _actions_core__WEBPACK_IMPORTED_MODULE_1___default().getInput('token')
-  const tag = _actions_core__WEBPACK_IMPORTED_MODULE_1___default().getInput('tag')
-  const gh = _actions_github__WEBPACK_IMPORTED_MODULE_0___default().getOctokit(token)
-  const owner = (_actions_github__WEBPACK_IMPORTED_MODULE_0___default().context.repo.owner)
-  const repo = (_actions_github__WEBPACK_IMPORTED_MODULE_0___default().context.repo.repo)
+  core.setOutput('failed', false) // mark the action not failed by default
+  const token = core.getInput('token')
+  const tag = core.getInput('tag')
+  const gh = github.getOctokit(token)
+  const owner = github.context.repo.owner
+  const repo = github.context.repo.repo
 
   // GET LATEST + PREVIOUS TAGS
 
@@ -27212,22 +27164,22 @@ const main = async () => {
     repo
   })
 
-  const latestTag = lodash__WEBPACK_IMPORTED_MODULE_2___default().get(tagsRaw, 'repository.refs.nodes[0]')
-  const previousTag = lodash__WEBPACK_IMPORTED_MODULE_2___default().get(tagsRaw, 'repository.refs.nodes[1]')
+  const latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
+  const previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
 
   if (!latestTag) {
-    return _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
+    return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
   }
   if (!previousTag) {
-    return _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
+    return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
   }
 
   if (latestTag.name !== tag) {
-    return _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setFailed('Provided tag doesn\'t match latest tag.')
+    return core.setFailed('Provided tag doesn\'t match latest tag.')
   }
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_1___default().info(`Using latest tag: ${latestTag.name}`)
-  _actions_core__WEBPACK_IMPORTED_MODULE_1___default().info(`Using previous tag: ${previousTag.name}`)
+  core.info(`Using latest tag: ${latestTag.name}`)
+  core.info(`Using previous tag: ${previousTag.name}`)
 
   // GET COMMITS
 
@@ -27245,8 +27197,8 @@ const main = async () => {
       page: curPage,
       per_page: 100
     })
-    totalCommits = lodash__WEBPACK_IMPORTED_MODULE_2___default().get(commitsRaw, 'data.total_commits', 0)
-    const rangeCommits = lodash__WEBPACK_IMPORTED_MODULE_2___default().get(commitsRaw, 'data.commits', [])
+    totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
+    const rangeCommits = _.get(commitsRaw, 'data.commits', [])
     commits.push(...rangeCommits)
     if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
       hasMoreCommits = true
@@ -27254,7 +27206,7 @@ const main = async () => {
   } while (hasMoreCommits)
 
   if (!commits || commits.length < 1) {
-    return _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setFailed('Couldn\'t find any commits between latest and previous tags.')
+    return core.setFailed('Couldn\'t find any commits between latest and previous tags.')
   }
 
   // PARSE COMMITS
@@ -27283,14 +27235,14 @@ const main = async () => {
       //     })
       //   }
       // }
-      _actions_core__WEBPACK_IMPORTED_MODULE_1___default().info(`[OK] Commit ${commit.sha}`)
+      core.info(`[OK] Commit ${commit.sha}`)
     } catch (err) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_1___default().info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
+      core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
     }
   }
 
   if (commitsParsed.length < 1) {
-    return _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setFailed('No valid commits parsed since previous tag.')
+    return core.setFailed('No valid commits parsed since previous tag.')
   }
 
   // BUILD CHANGELOG
@@ -27341,7 +27293,7 @@ const main = async () => {
   //   return core.warning('Nothing to add to changelog because of excluded types.')
   // }
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_1___default().setOutput('changes', commitsParsed.join('\n'))
+  core.setOutput('changes', commitsParsed.join('\n'))
 }
 
 main().catch(console.error)
