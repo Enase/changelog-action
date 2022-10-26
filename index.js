@@ -160,7 +160,7 @@ const main = async () => {
 
   const commitsParsedUnique = _.uniqBy(commitsParsed, 'jiraTicket')
 
-  const changes = ['*Changelog:*', ...commitsParsedUnique.map((parsedCommit) => {
+  const changes = [`*Changelog - ${latestTag.name}:*`, ...commitsParsedUnique.map((parsedCommit) => {
     return prepareSlackTitle(parsedCommit)
   })]
 
