@@ -52,7 +52,6 @@ const prepareSlackTitle = (messageData) => {
 const main = async () => {
   core.setOutput('failed', false) // mark the action not failed by default
   const token = core.getInput('token')
-  const tag = core.getInput('tag')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -62,7 +61,7 @@ const main = async () => {
   const tagsRaw = await gh.graphql(`
     query lastTags ($owner: String!, $repo: String!) {
       repository (owner: $owner, name: $repo) {
-        refs(first: 2, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
+        refs(first: 1, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
           nodes {
             name
             target {
@@ -78,21 +77,13 @@ const main = async () => {
   })
 
   const latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
-  const previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
 
   if (!latestTag) {
     return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
   }
-  if (!previousTag) {
-    return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
-  }
 
-  if (latestTag.name !== tag) {
-    return core.setFailed('Provided tag doesn\'t match latest tag.')
-  }
 
   core.info(`Using latest tag: ${latestTag.name}`)
-  core.info(`Using previous tag: ${previousTag.name}`)
 
   // GET COMMITS
 
@@ -106,7 +97,7 @@ const main = async () => {
     const commitsRaw = await gh.rest.repos.compareCommitsWithBasehead({
       owner,
       repo,
-      basehead: `${previousTag.name}...${latestTag.name}`,
+      basehead: `main...${latestTag.name}`,
       page: curPage,
       per_page: 100
     })
