@@ -27178,7 +27178,6 @@ const main = async () => {
     return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
   }
 
-
   core.info(`Using latest tag: ${latestTag.name}`)
 
   // GET COMMITS
@@ -27224,7 +27223,6 @@ const main = async () => {
           subject = await getPullRequestTitle(gh, owner, repo, prNumber)
         }
 
-        // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
         commitsParsed.push({
           message: subject,
           jiraTicket: getJiraTicket(subject),
