@@ -27098,60 +27098,51 @@ const github = __nccwpck_require__(5438)
 const core = __nccwpck_require__(2186)
 const _ = __nccwpck_require__(250)
 const util = __nccwpck_require__(3837)
-// import cc from '@conventional-commits/parser'
 
-// const types = [
-//   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
-//   { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:' },
-//   { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
-//   { types: ['refactor'], header: 'Refactors', icon: ':recycle:' },
-//   { types: ['test', 'tests'], header: 'Tests', icon: ':white_check_mark:' },
-//   { types: ['build', 'ci'], header: 'Build System', icon: ':construction_worker:' },
-//   { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
-//   { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
-//   { types: ['chore'], header: 'Chores', icon: ':wrench:' },
-//   { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
-// ]
+const createJiraLink = (jiraTicket) => {
+  return `https://gosource.atlassian.net/browse/${jiraTicket}`
+}
 
-// const rePrId = /#([0-9]+)/g
-// const rePrEnding = /\(#([0-9]+)\)$/
-
-// const buildSubject = ({ subject, author, authorUrl, owner, repo }) => {
-//   const hasPR = rePrEnding.test(subject)
-//   let final = subject
-//
-//   if (hasPR) {
-//     const prMatch = subject.match(rePrEnding)
-//     const msgOnly = subject.slice(0, prMatch[0].length * -1)
-//     final = msgOnly.replace(rePrId, (m, prId) => {
-//       return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
-//     })
-//     final += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
-//   } else {
-//     final = subject.replace(rePrId, (m, prId) => {
-//       return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
-//     })
-//     final += ` *(commit by [@${author}](${authorUrl}))*`
-//   }
-//
-//   return final
-// }
-
-const getPullRequest = async (gh, owner, repo, prNumber) => {
+const getPullRequestTitle = async (gh, owner, repo, prNumber) => {
   const { data: pullRequest } = await gh.rest.pulls.get({
     owner,
     repo,
     pull_number: prNumber
   })
 
-  console.log(pullRequest)
   return pullRequest.title
 }
 
-const titleRegexp = /(^GS-)(\d+):?(\s)+(?<subject>.+)/
+const titleRegexp = /(?<jiraticket>^GS-\d+):?(\s)+(?<subject>.+)/
 
 const isValidCommitTitle = (title) => {
   return titleRegexp.test(title)
+}
+
+const getJiraTicket = (message) => {
+  const match = message.match(titleRegexp)
+  if (!match) {
+    throw Error(`Cannot match jira ticket from: "${message}"`)
+  }
+  return match.groups.jiraticket
+}
+
+const getSubject = (message) => {
+  const match = message.match(titleRegexp)
+  if (!match) {
+    throw Error(`Cannot match subject from: "${message}"`)
+  }
+  return match.groups.subject
+}
+
+const prepareSlackTitle = (messageData) => {
+  const subject = getSubject(messageData.message)
+  return [
+    `<${createJiraLink(messageData.jiraTicket)}>|${messageData.jiraTicket}: ${subject}`,
+    '|',
+    `<${messageData.url}>${messageData.sha.slice(0, 6)}`,
+    `by <${messageData.authorUrl}>|${messageData.author}`
+  ].join(' ')
 }
 
 const main = async () => {
@@ -27236,15 +27227,16 @@ const main = async () => {
       const [message] = commit.commit.message.split('\n')
       if (isValidCommitTitle(message)) {
         let subject = message
-        const prNumberMatch = message.match(titleRegexp).groups.subject.match(/\(#(?<prnumber>\d+)\)/)
+        const prNumberMatch = getSubject(message).match(/\(#(?<prnumber>\d+)\)/)
         if (prNumberMatch) {
           const prNumber = prNumberMatch.groups.prnumber
-          subject = await getPullRequest(gh, owner, repo, prNumber)
+          subject = await getPullRequestTitle(gh, owner, repo, prNumber)
         }
 
         // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
         commitsParsed.push({
           message: subject,
+          jiraTicket: getJiraTicket(subject),
           sha: commit.sha,
           url: commit.html_url,
           author: commit.author.login,
@@ -27263,41 +27255,15 @@ const main = async () => {
 
   // BUILD CHANGELOG
 
-  // const changes = []
+  const commitsParsedUnique = _.uniqBy(commitsParsed, 'jiraTicket')
 
-  // let idx = 0
-  // for (const type of types) {
-  //   const matchingCommits = commitsParsed.filter(c => type.types.includes(c.type))
-  //   if (matchingCommits.length < 1) {
-  //     continue
-  //   }
-  //   if (idx > 0) {
-  //     changes.push('')
-  //   }
-  //   changes.push(`### ${type.icon} ${type.header}`)
-  //   for (const commit of matchingCommits) {
-  //     const scope = commit.scope ? `**${commit.scope}**: ` : ''
-  //     const subject = buildSubject({
-  //       subject: commit.subject,
-  //       author: commit.author,
-  //       authorUrl: commit.authorUrl,
-  //       owner,
-  //       repo
-  //     })
-  //     changes.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subject}`)
-  //   }
-  //   idx++
-  // }
-  //
-  // } else if (changes.length > 0) {
-  //   changes.push('')
-  // } else {
-  //   return core.warning('Nothing to add to changelog because of excluded types.')
-  // }
+  const changes = commitsParsedUnique.map((parsedCommit) => {
+    prepareSlackTitle(parsedCommit)
+  })
 
   console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
-  core.info(commitsParsed.join('\n'))
-  core.setOutput('changes', commitsParsed.join('\n'))
+  console.log(util.inspect(changes, { showHidden: false, depth: null, colors: true }))
+  core.setOutput('changes', changes)
 }
 
 main().catch(console.error)
