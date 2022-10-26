@@ -27246,10 +27246,10 @@ const main = async () => {
 
   const commitsParsedUnique = _.uniqBy(commitsParsed, 'jiraTicket')
 
-  const changes = ['*Changelog:*', ...commitsParsedUnique.map((parsedCommit) => {
+  const changes = ['*Difference between staging and production:*', ...commitsParsedUnique.map((parsedCommit) => {
     return prepareSlackTitle(parsedCommit)
   })]
-  
+
   core.setOutput('changelog', JSON.stringify(changes.join('\n')))
 }
 
