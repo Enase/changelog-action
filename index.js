@@ -45,17 +45,17 @@ const getPullRequest = async (gh, owner, repo, prNumber) => {
   const { data: pullRequest } = await gh.rest.pulls.get({
     owner,
     repo,
-    pull_number: prNumber,
-    mediaType: {
-      format: 'diff'
-    }
+    pull_number: prNumber
   })
 
   console.log(pullRequest)
+  return pullRequest.title
 }
 
+const titleRegexp = /(^GS-)(\d+):?(\s)+(?<subject>.+)/
+
 const isValidCommitTitle = (title) => {
-  return /(^GS-)(\d)+:?(\s)+(.)+/.test(title)
+  return titleRegexp.test(title)
 }
 
 const main = async () => {
@@ -139,9 +139,16 @@ const main = async () => {
     try {
       const [message] = commit.commit.message.split('\n')
       if (isValidCommitTitle(message)) {
+        let subject = message.match(titleRegexp).groups.subject
+        const prNumberMatch = subject.match(/\(#(?<prnumber>\d+)\)/)
+        if (prNumberMatch) {
+          const prNumber = prNumberMatch.groups.prnumber
+          subject = getPullRequest(gh, owner, repo, prNumber)
+        }
+
         // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
         commitsParsed.push({
-          message,
+          message: subject,
           sha: commit.sha,
           url: commit.html_url,
           author: commit.author.login,
