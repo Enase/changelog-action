@@ -139,8 +139,8 @@ const main = async () => {
     try {
       const [message] = commit.commit.message.split('\n')
       if (isValidCommitTitle(message)) {
-        let subject = message.match(titleRegexp).groups.subject
-        const prNumberMatch = subject.match(/\(#(?<prnumber>\d+)\)/)
+        let subject = message
+        const prNumberMatch = message.match(titleRegexp).groups.subject.match(/\(#(?<prnumber>\d+)\)/)
         if (prNumberMatch) {
           const prNumber = prNumberMatch.groups.prnumber
           subject = getPullRequest(gh, owner, repo, prNumber)
