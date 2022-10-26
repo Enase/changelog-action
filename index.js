@@ -167,7 +167,7 @@ const main = async () => {
 
   console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
   console.log(util.inspect(changes, { showHidden: false, depth: null, colors: true }))
-  core.setOutput('changes', changes)
+  core.setOutput('changelog', changes)
 }
 
 main().catch(console.error)
