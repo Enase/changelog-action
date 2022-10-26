@@ -27204,7 +27204,7 @@ const main = async () => {
   } while (hasMoreCommits)
 
   if (!commits || commits.length < 1) {
-    core.setOutput('changelog', JSON.stringify('No commits found since previous tag.'))
+    core.setOutput('changelog', JSON.stringify('No changes found since previous tag.'))
     return
   }
 
