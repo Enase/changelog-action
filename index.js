@@ -143,7 +143,7 @@ const main = async () => {
         const prNumberMatch = message.match(titleRegexp).groups.subject.match(/\(#(?<prnumber>\d+)\)/)
         if (prNumberMatch) {
           const prNumber = prNumberMatch.groups.prnumber
-          subject = getPullRequest(gh, owner, repo, prNumber)
+          subject = await getPullRequest(gh, owner, repo, prNumber)
         }
 
         // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
