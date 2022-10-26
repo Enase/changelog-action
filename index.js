@@ -108,7 +108,8 @@ const main = async () => {
   } while (hasMoreCommits)
 
   if (!commits || commits.length < 1) {
-    return core.setFailed('Couldn\'t find any commits between latest and previous tags.')
+    core.setOutput('changelog', JSON.stringify('No commits found since previous tag.'))
+    return
   }
 
   // PARSE COMMITS
