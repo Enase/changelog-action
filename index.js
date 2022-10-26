@@ -62,7 +62,7 @@ const main = async () => {
   const tagsRaw = await gh.graphql(`
     query lastTags ($owner: String!, $repo: String!) {
       repository (owner: $owner, name: $repo) {
-        refs(first: 3, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
+        refs(first: 2, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
           nodes {
             name
             target {
@@ -78,7 +78,7 @@ const main = async () => {
   })
 
   const latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
-  const previousTag = _.get(tagsRaw, 'repository.refs.nodes[2]')
+  const previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
 
   if (!latestTag) {
     return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
