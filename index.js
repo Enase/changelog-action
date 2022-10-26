@@ -1,7 +1,6 @@
 const github = require('@actions/github')
 const core = require('@actions/core')
 const _ = require('lodash')
-const util = require('util')
 
 const createJiraLink = (jiraTicket) => {
   return `https://gosource.atlassian.net/browse/${jiraTicket}`
@@ -137,7 +136,6 @@ const main = async () => {
           subject = await getPullRequestTitle(gh, owner, repo, prNumber)
         }
 
-        // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
         commitsParsed.push({
           message: subject,
           jiraTicket: getJiraTicket(subject),
@@ -154,7 +152,8 @@ const main = async () => {
   }
 
   if (commitsParsed.length < 1) {
-    return core.setFailed('No valid commits parsed since previous tag.')
+    core.setOutput('changelog', JSON.stringify('No commits found since previous tag.'))
+    return
   }
 
   // BUILD CHANGELOG
@@ -165,8 +164,6 @@ const main = async () => {
     return prepareSlackTitle(parsedCommit)
   })]
 
-  console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
-  console.log(util.inspect(changes, { showHidden: false, depth: null, colors: true }))
   core.setOutput('changelog', JSON.stringify(changes.join('\n')))
 }
 
