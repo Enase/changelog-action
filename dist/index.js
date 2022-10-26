@@ -27097,7 +27097,6 @@ var __webpack_exports__ = {};
 const github = __nccwpck_require__(5438)
 const core = __nccwpck_require__(2186)
 const _ = __nccwpck_require__(250)
-const util = __nccwpck_require__(3837)
 
 const createJiraLink = (jiraTicket) => {
   return `https://gosource.atlassian.net/browse/${jiraTicket}`
@@ -27233,7 +27232,6 @@ const main = async () => {
           subject = await getPullRequestTitle(gh, owner, repo, prNumber)
         }
 
-        // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
         commitsParsed.push({
           message: subject,
           jiraTicket: getJiraTicket(subject),
@@ -27250,7 +27248,8 @@ const main = async () => {
   }
 
   if (commitsParsed.length < 1) {
-    return core.setFailed('No valid commits parsed since previous tag.')
+    core.setOutput('changelog', JSON.stringify('No commits found since previous tag.'))
+    return
   }
 
   // BUILD CHANGELOG
@@ -27261,8 +27260,6 @@ const main = async () => {
     return prepareSlackTitle(parsedCommit)
   })]
 
-  console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
-  console.log(util.inspect(changes, { showHidden: false, depth: null, colors: true }))
   core.setOutput('changelog', JSON.stringify(changes.join('\n')))
 }
 
