@@ -27263,7 +27263,7 @@ const main = async () => {
 
   console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
   console.log(util.inspect(changes, { showHidden: false, depth: null, colors: true }))
-  core.setOutput('changelog', JSON.stringify(changes))
+  core.setOutput('changelog', JSON.stringify(changes.join('\n')))
 }
 
 main().catch(console.error)
