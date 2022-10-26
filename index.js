@@ -138,17 +138,16 @@ const main = async () => {
   for (const commit of commits) {
     try {
       const [message] = commit.commit.message.split('\n')
-      if (!isValidCommitTitle(message)) {
-        continue
+      if (isValidCommitTitle(message)) {
+        // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
+        commitsParsed.push({
+          message,
+          sha: commit.sha,
+          url: commit.html_url,
+          author: commit.author.login,
+          authorUrl: commit.author.html_url
+        })
       }
-      // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
-      commitsParsed.push({
-        message,
-        sha: commit.sha,
-        url: commit.html_url,
-        author: commit.author.login,
-        authorUrl: commit.author.html_url
-      })
       core.info(`[OK] Commit ${commit.sha}`)
     } catch (err) {
       core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
