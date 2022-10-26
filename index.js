@@ -162,7 +162,7 @@ const main = async () => {
   const commitsParsedUnique = _.uniqBy(commitsParsed, 'jiraTicket')
 
   const changes = commitsParsedUnique.map((parsedCommit) => {
-    prepareSlackTitle(parsedCommit)
+    return prepareSlackTitle(parsedCommit)
   })
 
   console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
