@@ -143,7 +143,8 @@ const main = async () => {
   }
 
   if (commitsParsed.length < 1) {
-    return core.setFailed('No valid commits parsed since previous tag.')
+    core.setOutput('changelog', JSON.stringify('No commits found since previous tag.'))
+    return
   }
 
   // BUILD CHANGELOG
