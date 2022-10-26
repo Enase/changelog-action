@@ -42,10 +42,10 @@ const getSubject = (message) => {
 const prepareSlackTitle = (messageData) => {
   const subject = getSubject(messageData.message)
   return [
-    `<${createJiraLink(messageData.jiraTicket)}>|${messageData.jiraTicket}: ${subject}`,
+    `<${createJiraLink(messageData.jiraTicket)}|${messageData.jiraTicket}>: ${subject}`,
     '|',
-    `<${messageData.url}>${messageData.sha.slice(0, 6)}`,
-    `by <${messageData.authorUrl}>|${messageData.author}`
+    `<${messageData.url}|${messageData.sha.slice(0, 6)}>`,
+    `by <${messageData.authorUrl}|${messageData.author}>`
   ].join(' ')
 }
 
@@ -161,9 +161,9 @@ const main = async () => {
 
   const commitsParsedUnique = _.uniqBy(commitsParsed, 'jiraTicket')
 
-  const changes = commitsParsedUnique.map((parsedCommit) => {
+  const changes = ['*Changelog:*', ...commitsParsedUnique.map((parsedCommit) => {
     return prepareSlackTitle(parsedCommit)
-  })
+  })]
 
   console.log(util.inspect(commitsParsed, { showHidden: false, depth: null, colors: true }))
   console.log(util.inspect(changes, { showHidden: false, depth: null, colors: true }))
