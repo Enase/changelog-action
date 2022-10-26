@@ -41,6 +41,23 @@ const util = require('util')
 //   return final
 // }
 
+const getPullRequest = async (gh, owner, repo, prNumber) => {
+  const { data: pullRequest } = await gh.rest.pulls.get({
+    owner,
+    repo,
+    pull_number: prNumber,
+    mediaType: {
+      format: 'diff'
+    }
+  })
+
+  console.log(pullRequest)
+}
+
+const isValidCommitTitle = (title) => {
+  return /(^GS-)(\d)+:?(\s)+(.)+/.test(title)
+}
+
 const main = async () => {
   core.setOutput('failed', false) // mark the action not failed by default
   const token = core.getInput('token')
@@ -120,26 +137,18 @@ const main = async () => {
 
   for (const commit of commits) {
     try {
+      const [message] = commit.commit.message.split('\n')
+      if (!isValidCommitTitle(message)) {
+        continue
+      }
       // const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
       commitsParsed.push({
-        message: commit.commit.message,
+        message,
         sha: commit.sha,
         url: commit.html_url,
         author: commit.author.login,
         authorUrl: commit.author.html_url
       })
-      // for (const note of cAst.notes) {
-      //   if (note.title === 'BREAKING CHANGE') {
-      //     breakingChanges.push({
-      //       sha: commit.sha,
-      //       url: commit.html_url,
-      //       subject: cAst.subject,
-      //       author: commit.author.login,
-      //       authorUrl: commit.author.html_url,
-      //       text: note.text
-      //     })
-      //   }
-      // }
       core.info(`[OK] Commit ${commit.sha}`)
     } catch (err) {
       core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
@@ -178,20 +187,6 @@ const main = async () => {
   //   idx++
   // }
   //
-  // if (breakingChanges.length > 0) {
-  //   changes.push('')
-  //   changes.push('### :boom: BREAKING CHANGES')
-  //   for (const breakChange of breakingChanges) {
-  //     const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
-  //     const subject = buildSubject({
-  //       subject: breakChange.subject,
-  //       author: breakChange.author,
-  //       authorUrl: breakChange.authorUrl,
-  //       owner,
-  //       repo
-  //     })
-  //     changes.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
-  //   }
   // } else if (changes.length > 0) {
   //   changes.push('')
   // } else {
