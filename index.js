@@ -96,7 +96,7 @@ const main = async () => {
     const commitsRaw = await gh.rest.repos.compareCommitsWithBasehead({
       owner,
       repo,
-      basehead: `main...${latestTag.name}`,
+      basehead: `${latestTag.name}...main`,
       page: curPage,
       per_page: 100
     })
