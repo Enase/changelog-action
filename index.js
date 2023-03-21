@@ -39,7 +39,7 @@ const getSubject = (message) => {
 }
 
 const prepareSlackTitle = (messageData) => {
-  const subject = getSubject(messageData.message).replace("'", '')
+  const subject = getSubject(messageData.message).replaceAll("'", '')
   return [
     `<${createJiraLink(messageData.jiraTicket)}|${messageData.jiraTicket}>: ${subject}`,
     '|',
