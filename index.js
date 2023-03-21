@@ -35,11 +35,11 @@ const getSubject = (message) => {
   if (!match) {
     throw Error(`Cannot match subject from: "${message}"`)
   }
-  return match.groups.subject
+  return match.groups.subject || ''
 }
 
 const prepareSlackTitle = (messageData) => {
-  const subject = getSubject(messageData.message)
+  const subject = getSubject(messageData.message).replace("'", '')
   return [
     `<${createJiraLink(messageData.jiraTicket)}|${messageData.jiraTicket}>: ${subject}`,
     '|',
